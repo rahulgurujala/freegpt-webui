@@ -79,20 +79,14 @@ def build_messages(jailbreak):
         f'{set_response_language(prompt)}'
     )
 
-    # Fetch search results if internet access is allowed
-    extra = []
-    if internet_access:
-        extra = fetch_search_results(prompt["content"])
-
+    extra = fetch_search_results(prompt["content"]) if internet_access else []
     # Initialize the conversation with the system message
     conversation = [{'role': 'system', 'content': system_message}]
 
     # Add extra results
     conversation += extra
 
-    # Add jailbreak instructions, if any
-    jailbreak_instructions = isJailbreak(jailbreak)
-    if jailbreak_instructions:
+    if jailbreak_instructions := isJailbreak(jailbreak):
         conversation += jailbreak_instructions
 
     # Add the existing conversation and the prompt
@@ -140,8 +134,7 @@ def generate_stream(response, jailbreak):
             if response_jailbroken(response_jailbreak):
                 unlocked = True
     else:
-        for message in response:
-            yield message
+        yield from response
 
 
 def response_jailbroken(response):
@@ -152,8 +145,7 @@ def response_jailbroken(response):
     :return: Boolean indicating if the response has been jailbroken  
     """
     act_pattern = re.compile(r'ACT:', flags=re.DOTALL)
-    act_match = act_pattern.search(response)
-    return act_match
+    return act_pattern.search(response)
 
 
 def set_response_language(prompt):
